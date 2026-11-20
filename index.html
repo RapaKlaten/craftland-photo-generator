@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Craftland Photo Generator</title>
+<meta name="description" content="Ubah foto menjadi gambar dari kotak, lingkaran, dan segitiga untuk Craftland.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1017;--sf:#161a24;--sf2:#202638;--bd:#283047;--fg:#eef1f8;--mut:#9aa3b8;--a:#ffb020;--ai:#1b1300;--c:#52d1f5;--ok:#43d99a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:500 14px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.nav{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--bd);font-size:16px;font-weight:800}
+.nav span{color:var(--mut);font-weight:600}
+.mark{width:28px;height:28px;flex:none}
+main{max-width:1180px;margin:0 auto;padding:24px 20px 72px}
+.app{display:grid;gap:20px}
+@media(min-width:960px){.app{grid-template-columns:380px minmax(0,1fr);align-items:start;gap:28px}}
+h1{font-size:clamp(1.5rem,4.5vw,1.9rem);font-weight:800;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px}
+h2{font-size:1.15rem;font-weight:800;line-height:1.25;margin:0 0 6px}
+h2.t{font-size:14px;font-weight:700;margin:0 0 12px}
+h2.t small{color:var(--mut);font-weight:600;font-size:13px}
+p.sub{margin:0 0 20px;color:var(--mut);font-size:14px;max-width:46ch}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:18px;margin-bottom:14px}
+.grid{display:grid;gap:22px}
+.spot{background:transparent;border-style:dashed;border-color:#3a4562}
+label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:8px}
+input[type=range]{width:100%;accent-color:var(--a)}
+select,textarea{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;font:inherit}
+textarea{font:12px/1.35 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;height:180px;word-break:break-all}
+.val{color:var(--a);font-weight:800;font-variant-numeric:tabular-nums}
+.chk{display:flex;gap:8px;flex-wrap:wrap}
+.chip{position:relative;display:inline-flex;align-items:center;gap:8px;margin:0;padding:9px 14px 9px 12px;border-radius:999px;background:var(--sf2);color:var(--mut);font-size:13px;font-weight:700;cursor:pointer;user-select:none;box-shadow:inset 0 0 0 1px var(--bd)}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip svg{width:14px;height:14px;fill:currentColor}
+.chip:has(input:checked){background:rgba(255,176,32,.14);color:var(--a);box-shadow:inset 0 0 0 1px var(--a)}
+.chip:has(input:focus-visible){outline:2px solid var(--c);outline-offset:2px}
+.file{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+input[type=file]{max-width:100%;color:var(--mut);font:600 13px "Plus Jakarta Sans",system-ui,sans-serif}
+input[type=file]::file-selector-button{font:inherit;font-weight:700;background:var(--a);color:var(--ai);border:0;border-radius:999px;padding:10px 18px;margin-right:12px;cursor:pointer}
+button{font:inherit;font-weight:700;border:0;background:var(--a);color:var(--ai);border-radius:999px;padding:11px 20px;cursor:pointer;transition:transform .12s,background .12s}
+button:hover:not(:disabled){background:#ffc04d}
+button:active:not(:disabled){transform:scale(.97)}
+button.alt{background:var(--sf2);color:var(--fg);box-shadow:inset 0 0 0 1px var(--bd)}
+button.alt:hover:not(:disabled){background:#2a3249}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:7px 14px;font-size:13px}
+#go{padding:12px 30px;font-size:15px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.views{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){.views{grid-template-columns:1fr 2fr}}
+.views .card{margin-bottom:0}
+.views+.card{margin-top:14px}
+canvas{width:100%;height:auto;display:block;border-radius:12px;background:#05070b}
+.cap{font-size:13px;font-weight:500;color:var(--mut);margin:8px 0 0}
+#stat{font-variant-numeric:tabular-nums;margin:0}
+.ok{color:var(--ok)}
+.er{color:#ff6b6b;font-weight:700}
+.ln{background:#0f131c;border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-top:8px}
+.ln.dn{opacity:.5}
+.ln.last{opacity:1;border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
+.lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;color:var(--mut)}
+.ln.last .lh{color:var(--fg)}
+.ln code{display:block;font:12px/1.45 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;word-break:break-all;color:var(--fg)}
+.hid{position:absolute;left:-9999px;width:1px;height:1px}
+.bar{height:6px;background:var(--sf2);border-radius:999px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:var(--a);transition:width .2s}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="nav"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="13" width="11" height="11" rx="2" fill="#ffb020"/><circle cx="19.5" cy="19" r="5.5" fill="#52d1f5"/><path d="M11 3 18 14H4z" fill="#eef1f8"/></svg><b>Craftland</b><span>Photo Generator</span></header>
+<main>
+<div class="app"><aside class="side">
+
+
+<section class="card spot">
+<div class="file"><input type="file" id="file" accept="image/*" aria-label="Pilih gambar"><span class="cap" id="fname"></span></div>
+</section>
+
+<section class="card" id="cropcard" hidden>
+<h2 class="t">Potong gambar <small>(opsional)</small></h2>
+<canvas id="crop" style="touch-action:none;margin:0 auto"></canvas>
+<div class="row" style="margin-top:10px"><select id="cratio" style="width:auto" aria-label="Rasio potongan"><option value="0">Bebas</option><option value="1">1:1 (sesuai kanvas)</option><option value="1.3333333">4:3</option><option value="0.75">3:4</option><option value="1.7777778">16:9</option></select><button id="creset" class="alt sm">Reset</button><span class="cap" id="cinfo"></span></div>
+</section>
+<section class="card grid">
+<div><label for="n">Jumlah bentuk: <span class="val" id="nv">300</span></label><input type="range" id="n" min="20" max="2500" step="10" value="300"></div>
+
+<div><h2 class="t">Bentuk yang dipakai</h2><div class="chk"><label class="chip"><input type="checkbox" id="s0" checked><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.5"/></svg>Kotak</label><label class="chip"><input type="checkbox" id="s1" checked><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"/></svg>Lingkaran</label><label class="chip"><input type="checkbox" id="s2" checked><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2 12.5 12h-11z"/></svg>Segitiga</label></div></div>
+<div><h2 class="t">Ketelitian</h2><div class="chk"><label class="chip"><input type="radio" name="q" id="q0" value="0">Cepat</label><label class="chip"><input type="radio" name="q" id="q1" value="1" checked>Seimbang</label><label class="chip"><input type="radio" name="q" id="q2" value="2">Teliti</label></div></div>
+</section>
+
+<div class="row" style="margin-bottom:14px"><button id="go" disabled>Mulai</button><button id="stop" class="alt" disabled>Berhenti</button><span id="stat" class="cap"></span></div>
+<div class="bar" aria-hidden="true" style="margin:-4px 0 14px"><i id="pg"></i></div>
+
+</aside>
+<div class="stage">
+<section class="views">
+<div class="card"><canvas id="orig" width="262" height="262"></canvas><p class="cap">Gambar asli</p></div>
+<div class="card"><canvas id="out" width="1294" height="1294"></canvas><p class="cap">Hasil</p></div>
+</section>
+
+<section class="card" id="rescard" hidden>
+<h2 style="font-size:1.25rem;margin:0 0 4px">Hasil untuk Craftland</h2>
+<p class="cap" style="margin:0 0 10px">Tempel berurutan dari baris 1, tanpa spasi atau enter.</p>
+<div class="row"><button id="c3" disabled>Salin baris berikutnya</button><button id="c2" class="alt" disabled>Salin semuanya</button></div>
+<p class="cap" id="info"></p>
+<p id="last" class="cap" style="margin:0 0 6px"></p>
+<p class="cap" id="tests"></p>
+<div id="list"></div>
+<textarea id="txt" class="hid" readonly tabindex="-1" aria-hidden="true"></textarea>
+</section>
+</div></div>
+</main>
+
+<script>
+(()=>{
+const CW=1294,CH=1294,HW=647,HH=647; // kanvas persegi 1294 x 1294: offset 647, koordinat 0..1294 (alfabet 1295 karakter muat sampai 1294)
+const $=id=>document.getElementById(id);
+let img=null,crop=null,Al,Cv,noBg=false,IW=CW,IH=CH,npx=1,t0run=0,T,cur,W,H,sx,sy,objs,err,done,total,running=false,types,maxsize=.5,octx=$("out").getContext("2d");
+
+$("n").oninput=e=>$("nv").textContent=e.target.value;
+$("file").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const u=URL.createObjectURL(f),i=new Image();
+  i.onload=()=>{img=i;crop=null;$("cropcard").hidden=false;$("fname").textContent=i.width+" × "+i.height+" px";$("go").disabled=false;preview()};
+  i.onerror=()=>{$("fname").textContent="Gambar tidak bisa dibaca. Coba format PNG atau JPG."};
+  i.src=u;
+};
+$("creset").onclick=()=>{crop=null;ratio=0;$("cratio").value="0";if(img)preview()};
+
+const cr=()=>crop||{x:0,y:0,w:img.width,h:img.height};
+function drawFit(ctx,w,h){const q=cr(),sc=Math.min(w/q.w,h/q.h),dw=q.w*sc,dh=q.h*sc;ctx.imageSmoothingQuality="high";ctx.drawImage(img,q.x,q.y,q.w,q.h,(w-dw)/2,(h-dh)/2,dw,dh)}
+function preview(){const c=$("orig");c.width=262;c.height=262;const x=c.getContext("2d");x.clearRect(0,0,262,262);drawFit(x,262,262);drawCrop()}
+let ratio=0,kc=1;const PAD=14,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function norm(b){const x=clamp(Math.round(b.x),0,img.width-1),y=clamp(Math.round(b.y),0,img.height-1);return{x,y,w:Math.max(1,Math.min(img.width-x,Math.round(b.w))),h:Math.max(1,Math.min(img.height-y,Math.round(b.h)))}}
+function applyDrag(m,c0,dx,dy){
+  const iw=img.width,ih=img.height,MIN=Math.min(24,iw,ih);
+  if(m==="move")return{x:clamp(c0.x+dx,0,iw-c0.w),y:clamp(c0.y+dy,0,ih-c0.h),w:c0.w,h:c0.h};
+  const hx=m.includes("e")?1:m.includes("w")?-1:0,hy=m.includes("s")?1:m.includes("n")?-1:0;
+  if(ratio&&hx&&hy){
+    const ax=hx>0?c0.x:c0.x+c0.w,ay=hy>0?c0.y:c0.y+c0.h,aw=hx>0?iw-ax:ax,ah=hy>0?ih-ay:ay;
+    const maxW=Math.min(aw,ah*ratio),minW=Math.min(maxW,Math.max(MIN,MIN*ratio));
+    const d=Math.abs(hx*dx)>Math.abs(hy*dy*ratio)?hx*dx:hy*dy*ratio;
+    const w=clamp(c0.w+d,minW,maxW),h=w/ratio;
+    return{x:hx>0?ax:ax-w,y:hy>0?ay:ay-h,w,h};
+  }
+  let x1=c0.x,x2=c0.x+c0.w,y1=c0.y,y2=c0.y+c0.h;
+  if(hx>0)x2=clamp(x2+dx,x1+MIN,iw);if(hx<0)x1=clamp(x1+dx,0,x2-MIN);
+  if(hy>0)y2=clamp(y2+dy,y1+MIN,ih);if(hy<0)y1=clamp(y1+dy,0,y2-MIN);
+  return{x:x1,y:y1,w:x2-x1,h:y2-y1};
+}
+function drawCrop(){
+  if(!img)return;
+  const c=$("crop"),par=c.parentElement,cs=getComputedStyle(par),avail=Math.max(160,par.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)),dpr=window.devicePixelRatio||1;
+  kc=Math.min((avail-2*PAD)/img.width,(Math.max(240,innerHeight*.55)-2*PAD)/img.height);
+  const iw=img.width*kc,ih=img.height*kc,cw=iw+2*PAD,ch=ih+2*PAD;
+  c.style.width=cw+"px";c.style.height=ch+"px";c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);
+  const x=c.getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);
+  x.drawImage(img,PAD,PAD,iw,ih);
+  const q=cr(),a=PAD+q.x*kc,b=PAD+q.y*kc,w=q.w*kc,h=q.h*kc;
+  x.fillStyle="rgba(0,0,0,.6)";
+  x.fillRect(PAD,PAD,iw,b-PAD);x.fillRect(PAD,b+h,iw,PAD+ih-b-h);x.fillRect(PAD,b,a-PAD,h);x.fillRect(a+w,b,PAD+iw-a-w,h);
+  x.strokeStyle="rgba(255,255,255,.35)";x.lineWidth=1;x.beginPath();
+  for(let k=1;k<3;k++){x.moveTo(a+w*k/3,b);x.lineTo(a+w*k/3,b+h);x.moveTo(a,b+h*k/3);x.lineTo(a+w,b+h*k/3)}
+  x.stroke();x.strokeStyle="#fff";x.lineWidth=2;x.strokeRect(a,b,w,h);
+  const pts=[[a,b],[a+w,b],[a,b+h],[a+w,b+h]];if(!ratio)pts.push([a+w/2,b],[a+w/2,b+h],[a,b+h/2],[a+w,b+h/2]);
+  x.fillStyle="#fff";x.strokeStyle="#181818";x.lineWidth=1.5;
+  pts.forEach(([px,py],i)=>{const r=i<4?7:5;x.fillRect(px-r,py-r,2*r,2*r);x.strokeRect(px-r,py-r,2*r,2*r)});
+  $("cinfo").textContent=q.w+" × "+q.h+" px";
+}
+$("cratio").onchange=()=>{
+  ratio=+$("cratio").value;if(!img)return;
+  if(ratio){const q=cr(),cx=q.x+q.w/2,cy=q.y+q.h/2;let w=q.w,h=w/ratio;if(h>q.h){h=q.h;w=h*ratio}
+    crop=norm({x:clamp(cx-w/2,0,img.width-w),y:clamp(cy-h/2,0,img.height-h),w,h})}
+  preview();
+};
+(()=>{const c=$("crop");let m=null,c0=null,p0=null;
+  const pt=e=>{const r=c.getBoundingClientRect();return[(e.clientX-r.left-PAD)/kc,(e.clientY-r.top-PAD)/kc]};
+  function hit(px,py){
+    const q=cr(),t=Math.max(6,Math.min(24,.34*Math.min(q.w,q.h)*kc))/kc,L=q.x,R=q.x+q.w,U=q.y,D=q.y+q.h;
+    const hs=[["nw",L,U],["ne",R,U],["sw",L,D],["se",R,D]];
+    if(!ratio)hs.push(["n",(L+R)/2,U],["s",(L+R)/2,D],["w",L,(U+D)/2],["e",R,(U+D)/2]);
+    let best=null,bd=1e9;for(const[n,x,y]of hs){const d=Math.hypot(px-x,py-y);if(d<=t&&d<bd){bd=d;best=n}}
+    return best||((px>=L&&px<=R&&py>=U&&py<=D)?"move":null);
+  }
+  c.onpointerdown=e=>{if(!img)return;const[px,py]=pt(e);m=hit(px,py);if(!m)return;c.setPointerCapture(e.pointerId);c0={...cr()};p0=[px,py];e.preventDefault()};
+  c.onpointermove=e=>{if(!m)return;const[px,py]=pt(e);crop=norm(applyDrag(m,c0,px-p0[0],py-p0[1]));drawCrop()};
+  c.onpointerup=c.onpointercancel=()=>{if(!m)return;m=null;preview()};
+  addEventListener("resize",()=>{if(img)drawCrop()});
+})();
+
+// ---------- geometri ----------
+function localPts(t,w,h){return t===0?[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]]:[[0,h/2],[-w/2,-h/2],[w/2,-h/2]]}
+function extent(s){
+  const [t,x,y,w,h,r]=s,a=r*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
+  if(t===1){const ex=Math.hypot(w/2*c,h/2*n),ey=Math.hypot(w/2*n,h/2*c);return[x-ex,x+ex,y-ey,y+ey]}
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const[u,v]of localPts(t,w,h)){const px=x+u*c-v*n,py=y+u*n+v*c;x0=Math.min(x0,px);x1=Math.max(x1,px);y0=Math.min(y0,py);y1=Math.max(y1,py)}
+  return[x0,x1,y0,y1];
+}
+function inside(t,u,v,hw,hh,h){
+  if(t===0)return Math.abs(u)<=hw&&Math.abs(v)<=hh;
+  if(t===1){const a=u/hw,b=v/hh;return a*a+b*b<=1}
+  return v>=-hh&&v<=hh&&Math.abs(u)<=hw*(hh-v)/h;
+}
+function bounds(s){
+  const e=extent(s);if(e[0]<-IW/2||e[1]>IW/2||e[2]<-IH/2||e[3]>IH/2)return null; // wajib di dalam area gambar
+  const j0=Math.max(0,Math.floor((e[0]+HW)/sx)),j1=Math.min(W,Math.ceil((e[1]+HW)/sx)),i0=Math.max(0,Math.floor((HH-e[3])/sy)),i1=Math.min(H,Math.ceil((HH-e[2])/sy));
+  return(j1>j0&&i1>i0)?[i0,i1,j0,j1]:null;
+}
+const UNC=20000,PEN=30000; // galat piksel belum tertutup; penalti menutup area di luar gambar (mode tanpa background)
+function score(s){
+  const b=bounds(s);if(!b)return null;
+  const[t,x,y,w,h,r]=s,a=r*Math.PI/180,c=Math.cos(a),n=Math.sin(a),hw=w/2,hh=h/2;
+  let cnt=0,s0=0,s1=0,s2=0,q=0,eo=0,pen=0;
+  for(let i=b[0];i<b[1];i++){const dy=HH-(i+.5)*sy-y;
+    for(let j=b[2];j<b[3];j++){const dx=-HW+(j+.5)*sx-x;
+      if(!inside(t,dx*c+dy*n,-dx*n+dy*c,hw,hh,h))continue;
+      const p=i*W+j;
+      if(!Al[p]){if(!Cv[p])pen++;continue}
+      const k=p*3,tr=T[k],tg=T[k+1],tb=T[k+2];
+      cnt++;s0+=tr;s1+=tg;s2+=tb;q+=tr*tr+tg*tg+tb*tb;
+      if(Cv[p]){const d0=tr-cur[k],d1=tg-cur[k+1],d2=tb-cur[k+2];eo+=d0*d0+d1*d1+d2*d2}else eo+=UNC;
+    }}
+  if(!cnt)return null;
+  const R=q2(s0/cnt),G=q2(s1/cnt),B=q2(s2/cnt); // warna 128 level: kelipatan 2
+  return{d:q-2*(R*s0+G*s1+B*s2)+cnt*(R*R+G*G+B*B)-eo+pen*PEN,col:[R,G,B],pen};
+}
+function apply(s,col){
+  const b=bounds(s),[t,x,y,w,h,r]=s,a=r*Math.PI/180,c=Math.cos(a),n=Math.sin(a),hw=w/2,hh=h/2;
+  for(let i=b[0];i<b[1];i++){const dy=HH-(i+.5)*sy-y;
+    for(let j=b[2];j<b[3];j++){const dx=-HW+(j+.5)*sx-x;
+      if(inside(t,dx*c+dy*n,-dx*n+dy*c,hw,hh,h)){const p=i*W+j,k=p*3;cur[k]=col[0];cur[k+1]=col[1];cur[k+2]=col[2];Cv[p]=1}
+    }}
+}
+function rc(){
+  for(let k=0;k<30;k++){const j=ri(0,W-1),i=ri(0,H-1),p=i*W+j;if(Al[p]&&(!Cv[p]||k>20))return[Math.round(-HW+(j+.5)*sx),Math.round(HH-(i+.5)*sy)]}
+  return[ri(-HW,HW),ri(-HH,HH)];
+}
+
+// ---------- pencarian ----------
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const gauss=sd=>Math.round(sd*Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random()));
+function mutate(s,st){
+  let[t,x,y,w,h,r]=s;const k=ri(0,3);
+  if(k===0){x+=gauss(st);y+=gauss(st)}else if(k===1)w+=gauss(st);else if(k===2)h+=gauss(st);else r+=gauss(st*1.5);
+  return[t,x,y,Math.min(CW,Math.max(3,w)),Math.min(CH,Math.max(3,h)),((r+180)%360+360)%360-180];
+}
+function climb(s,age,st){
+  let best=s,bs=score(s),a=0;
+  if(!bs)return null;
+  while(a<age){const c=mutate(best,st),sc=score(c);if(sc&&sc.d<bs.d){best=c;bs=sc;a=0}else a++}
+  return{s:best,sc:bs};
+}
+const QPRE=[{pool:80,top:6,age:60},{pool:160,top:8,age:110},{pool:300,top:10,age:180}];let QP=QPRE[1]; // Cepat, Seimbang, Teliti
+function stepOnce(fr){
+  const frac=fr!==undefined?fr:Math.max(.06,maxsize*Math.pow(1-done/total,1.2)),smax=Math.max(10,Math.floor(Math.max(IW,IH)*frac)),pool=[];
+  for(let k=0;k<QP.pool;k++){
+    const s=[types[ri(0,types.length-1)],...rc(),ri(6,smax),ri(6,smax),ri(-90,90)],sc=score(s);
+    if(sc)pool.push([sc.d,s]);
+  }
+  pool.sort((p,q)=>p[0]-q[0]);
+  let best=null;
+  for(const[,s]of pool.slice(0,QP.top)){const r=climb(s,QP.age,Math.max(4,smax>>3));if(r&&(!best||r.sc.d<best.sc.d))best=r}
+  if(fr===undefined)done++;
+  if(!best)return;
+  apply(best.s,best.sc.col);err+=best.sc.d-best.sc.pen*PEN;
+  const o=[best.s[0],best.sc.col,best.s[1],best.s[2],best.s[3],best.s[4],rot360(best.s[5])];objs.push(o);drawObj(o);
+}
+
+// ---------- render & output ----------
+function drawObj(o){
+  const[t,col,x,y,w,h,r]=o;
+  octx.save();octx.fillStyle=`rgb(${col[0]},${col[1]},${col[2]})`;
+  octx.translate(x+HW,HH-y);octx.rotate(-r*Math.PI/180);
+  if(t===0)octx.fillRect(-w/2,-h/2,w,h);
+  else if(t===1){octx.beginPath();octx.ellipse(0,0,w/2,h/2,0,0,2*Math.PI);octx.fill()}
+  else{octx.beginPath();octx.moveTo(0,-h/2);octx.lineTo(-w/2,h/2);octx.lineTo(w/2,h/2);octx.closePath();octx.fill()}
+  octx.restore();
+}
+// ---------- Basis 1449 (1 karakter Unicode per angka, 7 karakter per objek) ----------
+// Urutan: [tipe+rotasi] [warna1] [warna2] X Y W H (semuanya 1 karakter)
+// Warna: h = warna1*1449 + warna2 (0..2097151). r=floor(h/128/128)%128, g=floor(h/128)%128, b=h%128. Nilai asli = level x 2 (0..254).
+// Karakter pertama = tipe*360 + rotasi. Dekode: tipe = n dibagi 360 (dibulatkan ke bawah), rotasi = sisa bagi 360.
+// Kode tipe: 0 = kotak, 1 = segitiga, 2 = lingkaran.
+const AL="¡¢£¤¥¦§©«¬®°±¶·»¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĴĵĶķĸĹĺĻļĽľŁłŃńŅņŇňŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏḀḁḂḃḄḅḆḇḈḉḊḋḌḍḎḏḐḑḒḓḔḕḖḗḘḙḚḛḜḝḞḟḠḡḢḣḤḥḦḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼṽṾṿẀẁẂẃẄẅẆẇẈẉẊẋẌẍẎẏẐẑẒẓẔẕẖẗẘẙẜẝẞẟẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹỺỻỼỽỾỿΆΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ←↑→↓↔↕↖↗↘↙↚↛↜↝↞↟↠↡↢↣↤↥↦↧↨↩↪↫↬↭↮↯↰↱↲↳↴↵↶↷↸↹↺↻↼↽↾↿⇀⇁⇂⇃⇄⇅⇆⇇⇈⇉⇊⇋⇌⇍⇎⇏⇐⇑⇒⇓⇔⇕⇖⇗⇘⇙⇚⇛⇜⇝⇞⇟⇠⇡⇢⇣⇤⇥⇦⇧⇨⇩⇪⇫⇬⇭⇮⇯⇰⇱⇲⇳⇴⇵⇶⇷⇸⇹⇺⇻⇼⇽⇾⇿∀∁∂∃∄∅∆∇∈∉∊∋∌∍∎∏∐∑−∓∔∕∖∗∘∙√∛∜∝∞∟∠∡∢∣∤∥∦∧∨∩∪∫∮∱∲∳∴∵∶∷∸∹∺∻∼∽∾∿≀≁≂≃≄≅≆≇≈≉≊≋≌≍≎≏≐≑≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≡≢≣≤≥≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊂⊃⊄⊅⊆⊇⊈⊉⊊⊋⊌⊍⊎⊏⊐⊑⊒⊓⊔⊕⊖⊗⊘⊙⊚⊛⊜⊝⊞⊟⊠⊡⊢⊣⊤⊥⊦⊧⊨⊩⊪⊫⊬⊭⊮⊯⊰⊱⊲⊳⊴⊵⊶⊷⊸⊹⊺⊻⊼⊽⊾⊿⋀⋁",BASE=AL.length,OL=7,IDX=new Map([...AL].map((c,i)=>[c,i]));
+const TM=[0,2,1]; // tukar tipe internal (0 kotak, 1 lingkaran, 2 segitiga) <-> kode (0 kotak, 1 segitiga, 2 lingkaran)
+const q2=v=>Math.min(254,Math.max(0,Math.round(v/2)*2));
+const rot360=r=>((r%360)+360)%360;
+function e1(n,nm){if(!Number.isInteger(n)||n<0||n>=BASE)throw new RangeError(nm+" "+n+" di luar rentang 0-"+(BASE-1));return AL[n]}
+function d1(c){const i=typeof c==="string"?IDX.get(c):undefined;if(i===undefined)throw new Error("Karakter tidak dikenal: "+c);return i}
+function encCol(c){
+  for(const v of c)if(!Number.isInteger(v)||v<0||v>254||v%2)throw new RangeError("Warna "+v+" harus kelipatan 2 dalam 0-254");
+  const h=((c[0]/2)*128+c[1]/2)*128+c[2]/2;return AL[Math.floor(h/BASE)]+AL[h%BASE]}
+function encObj(o){const[t,c,x,y,w,h,r]=o;if(!(t===0||t===1||t===2))throw new RangeError("Tipe "+t+" tidak valid");
+  return e1(TM[t]*360+rot360(r),"Tipe+rotasi")+encCol(c)+[[x+HW,"X"],[y+HH,"Y"],[w,"W"],[h,"H"]].map(([v,n])=>e1(v,n)).join("")}
+function decodeAll(s){
+  if(typeof s!=="string")throw new Error("Data harus berupa teks");
+  if(s.length%OL)throw new Error("Panjang "+s.length+" bukan kelipatan "+OL);
+  const out=[];
+  for(let p=0;p<s.length;p+=OL){
+    const v=[];for(let k=0;k<OL;k++)v.push(d1(s[p+k]));
+    const tc=Math.floor(v[0]/360);
+    if(tc>2)throw new Error("Tipe tidak dikenal di posisi "+p);
+    const hc=v[1]*BASE+v[2];if(hc>=2097152)throw new Error("Warna tidak valid di posisi "+p);
+    out.push([TM[tc],[Math.floor(hc/16384)%128*2,Math.floor(hc/128)%128*2,hc%128*2],v[3]-HW,v[4]-HH,v[5],v[6],v[0]%360]);
+  }
+  return out;
+}
+function runTests(){
+  let n=0;const bad=[],J=JSON.stringify;
+  const ok=(c,m)=>{n++;if(!c)bad.push(m)};
+  const thr=(f,m)=>{n++;try{f();bad.push(m+" (tidak error)")}catch(e){}};
+  ok(BASE===1449&&new Set(AL).size===1449,"alfabet harus 1449 karakter unik");
+  ok([...AL].every(c=>c.length===1&&!/[\s\u0300-\u036f\u200b-\u200f]/.test(c)),"alfabet 1 unit, tanpa spasi/tanda gabung");
+  ok(AL[0]==="\u00a1"&&AL[1399]==="\u2290"&&AL[1400]==="\u2291"&&AL[1448]==="\u22c1","urutan alfabet");
+  for(let i=0;i<BASE;i++)ok(d1(e1(i,"v"))===i,"roundtrip "+i);
+  [-1,BASE,1.5,NaN,"5"].forEach(v=>thr(()=>e1(v,"v"),"enc "+v));
+  ["a","","ab","\u0300"].forEach(v=>thr(()=>d1(v),"dec '"+v+"'"));
+  ok(decodeAll("").length===0,"string kosong");
+  thr(()=>decodeAll(AL.slice(0,10)),"panjang bukan kelipatan 7");
+  thr(()=>decodeAll(AL[1080]+AL[0].repeat(6)),"tipe tidak dikenal (1080)");
+  thr(()=>decodeAll(AL[0]+AL[1448]+AL[1448]+AL[0].repeat(4)),"warna di atas 128^3");
+  thr(()=>decodeAll(AL[0].repeat(6)+"a"),"karakter tidak dikenal");
+  thr(()=>encObj([0,[0,0,0],8000,0,10,10,0]),"X di luar rentang");
+  thr(()=>encObj([3,[0,0,0],0,0,10,10,0]),"tipe 3");
+  thr(()=>encObj([0,[1,0,0],0,0,10,10,0]),"warna ganjil");
+  thr(()=>encObj([0,[256,0,0],0,0,10,10,0]),"warna 256");
+  ok(encObj([0,[0,0,0],-647,-647,3,3,0])===AL[0].repeat(3)+AL[0].repeat(2)+AL[3]+AL[3],"ekstrem minimum");
+  ok(encObj([2,[1*2,2*2,3*2],0,0,10,10,0])[0]===AL[360],"segitiga = 360 + rotasi");
+  ok(encObj([1,[2,4,6],0,0,10,10,0])[0]===AL[720],"lingkaran = 720 + rotasi");
+  ok(encObj([0,[2,4,6],0,0,10,10,-90])[0]===AL[270],"rotasi negatif");
+  ok(encObj([0,[2,4,6],0,0,10,10,360])[0]===AL[0],"rotasi 360");
+  const hmax=2097151,mx=encObj([1,[254,254,254],647,647,1294,1294,359]);
+  ok(mx===AL[1079]+AL[Math.floor(hmax/BASE)]+AL[hmax%BASE]+AL[1294].repeat(4),"ekstrem maksimum");
+  const dc=decodeAll(mx)[0][1];ok(J(dc)===J([254,254,254]),"putih = 254");
+  const a=[[0,[254,0,0],100,100,50,50,0],[1,[0,254,0],200,100,40,40,1],[2,[0,0,254],-300,-100,60,50,359]],b=decodeAll(a.map(encObj).join(""));
+  ok(J(a)===J(b),"round-trip internal");
+  for(let r=0;r<128;r++)for(const [g,bb] of [[0,0],[127,127],[r,127-r]]){const c=[r*2,g*2,bb*2];ok(J(decodeAll(encObj([0,c,0,0,10,10,0]))[0][1])===J(c),"warna "+c)}
+  const big=[];
+  for(let i=0;i<500;i++){const R=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));big.push([R(0,2),[2*R(0,127),2*R(0,127),2*R(0,127)],R(-647,647),R(-647,647),R(3,1294),R(3,1294),R(0,359)])}
+  const s=big.map(encObj).join("");
+  ok(s.length===500*OL&&[...s].every(ch=>IDX.has(ch)),"500 objek: panjang/karakter");
+  ok(J(decodeAll(s))===J(big),"500 objek round-trip");
+  return bad.length?"Uji Basis1449 GAGAL ("+bad.length+" dari "+n+"): "+bad.slice(0,3).join("; "):"Uji Basis1449: "+n+" tes lulus";
+}
+
+let full="",lines="";
+let rows=[],canCopy=false,lastIdx=-1;
+function resetList(){canCopy=false;lastIdx=-1;rows=[];$("list").textContent=""}
+function paintRow(i){const r=rows[i];r.el.classList.toggle("dn",r.done);r.el.classList.toggle("last",i===lastIdx);r.btn.textContent=r.done?"Tersalin":"Salin";r.btn.disabled=!canCopy;r.code.textContent=r.txt;r.lab.textContent="Baris "+(i+1)}
+function paintNext(){
+  const i=rows.findIndex(r=>!r.done),b=$("c3");
+  b.textContent=i<0?"Semua baris tersalin":"Salin baris "+(i+1);
+  b.disabled=!canCopy||i<0;
+  const n=rows.filter(r=>r.done).length;
+  $("last").innerHTML=lastIdx>=0&&rows[lastIdx]?`${n} dari ${rows.length} baris tersalin.`:"";
+}
+async function copyText(text){
+  try{await navigator.clipboard.writeText(text);return true}catch(e){
+    const t=$("txt");t.value=text;t.select();
+    try{return document.execCommand("copy")}catch(_){return false}finally{t.value=""}
+  }
+}
+async function copyRow(i){if(canCopy&&await copyText(rows[i].txt)){const p=lastIdx;rows[i].done=true;lastIdx=i;paintRow(i);if(p>=0&&p!==i&&rows[p])paintRow(p);paintNext()}}
+function publish(){
+  const LN=200;
+  try{full=objs.map(encObj).join("")}catch(e){$("info").textContent="";const sp=document.createElement("span");sp.className="er";sp.textContent="Terjadi kesalahan, hasil tidak bisa dibuat: "+e.message+". Tekan Mulai untuk memproses ulang.";$("info").appendChild(sp);return}
+  const L=full.match(new RegExp(".{1,"+LN+"}","g"))||[];
+  lines=L.join("\n");
+  let okc=L.slice(0,-1).every(l=>l.length===LN)&&L.join("")===full;
+  try{okc=okc&&full.length%OL===0&&JSON.stringify(decodeAll(full))===JSON.stringify(objs)}catch(e){okc=false}
+  while(rows.length>L.length)rows.pop().el.remove();
+  L.forEach((t,i)=>{
+    let r=rows[i];
+    if(!r){
+      const el=document.createElement("div");el.className="ln";
+      el.innerHTML='<div class="lh"><span></span><button class="alt sm"></button></div><code></code>';
+      r={el,lab:el.children[0].children[0],btn:el.children[0].children[1],code:el.children[1],txt:t,done:false};
+      r.btn.onclick=()=>copyRow(i);
+      rows.push(r);$("list").appendChild(el);
+    }else if(r.txt!==t){r.txt=t;r.done=false}
+    paintRow(i);
+  });
+  $("info").innerHTML=`${objs.length} bentuk, ${L.length} baris.`+(okc?"":' <span class="er">Format bermasalah, coba proses ulang.</span>')+(running?" Hasil sementara, salin setelah selesai.":"");
+  $("c2").disabled=!canCopy||!objs.length;
+  paintNext();
+}
+function ui(){
+  const rmse=Math.sqrt(Math.max(0,err)/(Math.max(1,npx)*3));
+  const el=(performance.now()-t0run)/1000,eta=done?el/done*(total-done):0,mm=Math.floor(eta/60),ss=Math.round(eta%60);
+  $("stat").textContent=running&&ph===2?`Tahap 2 dari 2: merapikan bentuk tertutup (${d2} dari ${t2}).`:running?`Tahap 1 dari 2: ${done} dari ${total} bentuk`+(done?`, sisa ${mm>0?mm+" mnt ":""}${ss} dtk`:"")+".":(done>=total?`Selesai, ${total} bentuk.`+(fixed?` ${fixed} bentuk tertutup diganti.`:""):`Dihentikan di bentuk ke-${done}.`);
+  $("pg").style.width=(ph===2?100*d2/Math.max(1,t2):100*done/total)+"%";
+}
+// ---------- tahap 2: cek bentuk yang tidak terlihat ----------
+// Bentuk yang seluruh pikselnya tertimpa bentuk di atasnya dibuang, lalu diganti bentuk baru di bagian yang masih kurang jelas.
+let ph=1,pass=0,fixed=0,d2=0,t2=0,dead=new Set();
+const TV=3; // bentuk dengan sisa terlihat <= 3 piksel grid dianggap tersembunyi
+function hidden(){
+  const m=new Uint8Array(W*H),out=[];
+  for(let k=objs.length-1;k>0;k--){ // indeks 0 = background, tidak diperiksa
+    if(dead.has(k))continue; // yang sudah ditandai akan dibuang, jadi tidak ikut menutupi bentuk di bawahnya
+    const o=objs[k],s=[o[0],o[2],o[3],o[4],o[5],o[6]],b=bounds(s);
+    if(!b)continue;
+    const a=s[5]*Math.PI/180,c=Math.cos(a),n=Math.sin(a),hw=s[3]/2,hh=s[4]/2;let vis=0;
+    for(let i=b[0];i<b[1];i++){const dy=HH-(i+.5)*sy-s[2];
+      for(let j=b[2];j<b[3];j++){const dx=-HW+(j+.5)*sx-s[1];
+        if(inside(s[0],dx*c+dy*n,-dx*n+dy*c,hw,hh,s[4])){const q=i*W+j;if(!m[q]){m[q]=1;vis++}}
+      }}
+    if(vis<=TV)out.push(k);
+  }
+  return out;
+}
+function check(){
+  const hd=hidden().filter(k=>!dead.has(k));
+  if(!hd.length||pass>=6){
+    if(dead.size){objs=objs.filter((_,k)=>!dead.has(k));dead=new Set()} // baru dibuang di akhir, supaya daftar salin tidak sempat menyusut
+    finish();return;
+  }
+  pass++;fixed+=hd.length;hd.forEach(k=>dead.add(k)); // bentuk lama tetap ada sementara, bentuk pengganti ditambahkan di atasnya
+  ph=2;d2=0;t2=hd.length;ui();setTimeout(tick,0);
+}
+function tick(){
+  if(!running)return;
+  const t0=performance.now();
+  if(ph===1){
+    while(performance.now()-t0<30&&done<total)stepOnce();
+    ui();
+    if(done%20<3||done>=total)publish();
+    if(done<total)setTimeout(tick,0);else check();
+  }else{
+    while(performance.now()-t0<30&&d2<t2){stepOnce(.1);d2++}
+    ui();
+    if(d2%20<3||d2>=t2)publish();
+    if(d2<t2)setTimeout(tick,0);else check();
+  }
+}
+function finish(){running=false;canCopy=true;ui();publish();$("go").disabled=false;$("stop").disabled=true}
+
+$("go").onclick=()=>{
+  types=[0,1,2].filter(i=>$("s"+i).checked);QP=QPRE[+(document.querySelector("input[name=q]:checked")||{value:1}).value];
+  if(!types.length){$("stat").textContent="Pilih minimal satu jenis bentuk.";return}
+  W=647;H=647;sx=CW/W;sy=CH/H;noBg=false; // background selalu dipakai
+  const q=cr(),ks=Math.min(CW/q.w,CH/q.h);
+  IW=Math.min(CW,Math.max(2,2*Math.round(q.w*ks/2)));IH=Math.min(CH,Math.max(2,2*Math.round(q.h*ks/2)));
+  const c=document.createElement("canvas");c.width=W;c.height=H;const ctx=c.getContext("2d");
+  ctx.imageSmoothingQuality="high";ctx.drawImage(img,q.x,q.y,q.w,q.h,(W-IW/sx)/2,(H-IH/sy)/2,IW/sx,IH/sy);
+  const d=ctx.getImageData(0,0,W,H).data;
+  T=new Float32Array(W*H*3);cur=new Float32Array(W*H*3);Al=new Uint8Array(W*H);Cv=new Uint8Array(W*H);
+  let a=[0,0,0],px=0;
+  for(let i=0,k3=0,p=0;i<d.length;i+=4,k3+=3,p++){T[k3]=d[i];T[k3+1]=d[i+1];T[k3+2]=d[i+2];if(d[i+3]>127){Al[p]=1;px++;a[0]+=d[i];a[1]+=d[i+1];a[2]+=d[i+2]}}
+  if(!px){$("stat").textContent="Gambar ini tidak punya bagian yang bisa digambar. Coba gambar lain.";return}
+  npx=px;const avg=a.map(v=>q2(v/px));
+  err=0;
+  if(noBg)err=px*UNC;
+  else for(let p=0;p<W*H;p++){if(!Al[p])continue;Cv[p]=1;const k3=p*3;cur[k3]=avg[0];cur[k3+1]=avg[1];cur[k3+2]=avg[2];for(let m=0;m<3;m++){const e=T[k3+m]-avg[m];err+=e*e}}
+  resetList();$("rescard").hidden=false;octx.clearRect(0,0,CW,CH);
+  if(noBg)objs=[];else{objs=[[0,avg,0,0,IW,IH,0]];drawObj(objs[0])}
+  t0run=performance.now();total=+$("n").value;done=0;ph=1;pass=0;fixed=0;d2=0;t2=0;dead=new Set();running=true;$("go").disabled=true;$("stop").disabled=false;publish();setTimeout(tick,0);
+};
+$("stop").onclick=()=>{if(running)finish()};
+
+async function copyAll(text,btn,markAll){
+  if(!canCopy)return;
+  const old=btn.textContent;
+  if(await copyText(text)){
+    if(markAll){lastIdx=rows.length-1;rows.forEach((r,i)=>{r.done=true;paintRow(i)});paintNext()}
+    btn.textContent="Tersalin";setTimeout(()=>btn.textContent=old,1400);
+  }
+}
+$("c2").onclick=e=>copyAll(full,e.target,true);
+$("c3").onclick=()=>{const i=rows.findIndex(r=>!r.done);if(i>=0)copyRow(i)};
+{const tr=runTests();if(tr.includes("GAGAL"))$("tests").textContent="Peringatan: pemeriksaan internal gagal. "+tr}
+})();
+</script>
+</body>
+</html>
