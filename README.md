@@ -118,6 +118,7 @@ Ketelitian mengatur seberapa teliti pencarian di tiap langkah:
 .
 ├── index.html                      # aplikasinya (satu file)
 ├── craftland_alfabet_1449.txt      # alfabet 1449 karakter, per 200 karakter
+├── craftland_unicode_test_3000.txt # 3000 karakter kandidat untuk tes input Craftland
 └── README.md
 ```
 
