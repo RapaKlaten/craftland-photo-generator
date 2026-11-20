@@ -4,6 +4,46 @@ Alat web satu file (HTML) yang mengubah foto menjadi gambar dari **kotak, lingka
 
 Semuanya berjalan di browser. Foto tidak diunggah ke mana pun.
 
+## Kenapa dibuat begini
+
+### Kenapa memakai bentuk, bukan piksel?
+
+Cara paling sederhana mengubah foto menjadi gambar adalah satu geometri untuk satu piksel. Masalahnya, Craftland membatasi jumlah geometri **maksimal 5000**. Dengan batas itu, gambar piksel hanya bisa sekitar 70 × 70 piksel (70 × 70 = 4900), terlalu kasar untuk dikenali.
+
+Dengan kotak, lingkaran, dan segitiga yang bebas diatur posisi, ukuran, rotasi, dan warnanya, jatah geometri dipakai lebih hemat. Satu bentuk besar bisa menutupi area luas yang warnanya mirip, dan bentuk kecil hanya dipakai di bagian yang butuh detail. Hasilnya jauh lebih jelas untuk jumlah geometri yang sama. Slider dibatasi sampai 2500 bentuk, masih di bawah batas 5000.
+
+### Kenapa datanya dipadatkan?
+
+Teks hanya bisa dimasukkan ke Craftland **per 200 karakter**, jadi seluruh data harus ditempel baris demi baris. Makin panjang datanya, makin banyak baris yang harus disalin dan ditempel satu per satu, dan makin melelahkan.
+
+Karena itu data tiap bentuk dipadatkan sekecil mungkin. Formatnya berkembang dari 17 karakter per bentuk (basis 36) menjadi **7 karakter** (satu karakter Unicode per angka, alfabet 1449 karakter, tipe dan rotasi digabung, warna 2 karakter):
+
+| Jumlah bentuk | 17 karakter per bentuk | 7 karakter per bentuk |
+|---|---|---|
+| 300 (bawaan) | 5.100 karakter, 26 baris | 2.100 karakter, 11 baris |
+| 2500 | 42.500 karakter, 213 baris | 17.500 karakter, 88 baris |
+
+Imbal baliknya, alfabet 1449 karakter itu memang lebih berat: tabel di Craftland harus memuat 1449 entri, dan setiap karakternya harus sudah teruji diterima kolom input Craftland (itulah alasan ada daftar uji karakter di repo ini). Tetapi biaya itu hanya sekali di awal, sedangkan penghematannya terasa setiap kali menyalin hasil, jadi kompromi ini sepadan.
+
+## Latar belakang
+
+### Kenapa tidak memakai metode piksel?
+
+Cara paling sederhana menampilkan gambar adalah satu geometri per piksel. Tetapi Craftland membatasi jumlah geometri maksimal **5000**. Dengan batas itu, gambar piksel hanya bisa sekitar 70 × 70 piksel (70 × 70 = 4900), terlalu kasar untuk dikenali.
+
+Dengan bentuk bebas (kotak, lingkaran, segitiga) yang ukuran, posisi, rotasi, dan warnanya diatur satu per satu, jumlah geometri yang sama bisa dipakai jauh lebih efisien. Bentuk besar menutup area luas, lalu bentuk kecil ditambahkan di bagian yang butuh detail.
+
+### Kenapa datanya dipadatkan?
+
+Kolom input teks di Craftland hanya menerima **200 karakter sekali tempel**. Makin panjang hasilnya, makin banyak kali salin-tempel, dan itu melelahkan. Karena itu tiap bentuk dipadatkan sampai hanya **7 karakter**. Perbandingan untuk 2500 bentuk:
+
+| Format | Karakter per bentuk | Total karakter | Jumlah baris (200 karakter) |
+|---|---|---|---|
+| Versi awal (Base36) | 17 | 42.500 | 213 |
+| Sekarang (alfabet 1449) | 7 | 17.500 | 88 |
+
+Harganya, alfabet 1449 karakter Unicode lebih berat: tabelnya lebih besar di Craftland dan tiap karakter harus dicari nomor urutnya. Tetapi itu sepadan, karena bagian yang paling merepotkan adalah salin-tempel, bukan pembacaannya.
+
 ## Fitur
 
 - Memecah foto menjadi 20 sampai 2500 bentuk (bawaan 300).
@@ -63,14 +103,24 @@ Pengali di rumus `hasil` harus **1449**, sama dengan ukuran alfabet. Kalau dipak
 
 Warna disimpan dalam 128 level per kanal (kelipatan 2, 0 sampai 254). Generator sudah membulatkan warna ke level ini saat mencari bentuk, jadi pratinjau di layar sama persis dengan hasil yang dibaca Craftland.
 
-### Contoh untuk menguji decoder
-
-| Teks | Nomor urut | Hasil |
-|---|---|---|
-| `¡⊵¥ЙЙáá` | 0, 1436, 4, 747, 747, 50, 50 | Kotak, warna (254, 0, 0), X = Y = 100, ukuran 50 × 50, rotasi 0 |
-| `ḳắ÷ЙЙáá` | 450, 572, 72, 747, 747, 50, 50 | Segitiga, warna (100, 150, 200), X = Y = 100, ukuran 50 × 50, rotasi 90 |
-
 Arah rotasi mengikuti rumus di kode. Kalau di Craftland terlihat terbalik, ubah tanda rotasi saat membaca.
+
+### Cara Craftland membacanya
+
+Di Craftland, semua baris yang sudah ditempel disambung menjadi satu string panjang. Karena satu baris 200 karakter tidak selalu pas kelipatan 7, sebuah bentuk bisa terpotong di ujung baris. Jadi sambungkan dulu semuanya, baru dibaca per 7 karakter.
+
+Logika di Craftland lalu melakukan loop:
+
+```
+untuk i dari 0 sampai (panjang data / 7) - 1:
+    potongan = 7 karakter mulai dari posisi i x 7
+    cari nomor urut tiap karakter di alfabet
+    decode: tipe, rotasi, r, g, b, x, y, w, h   (pseudokode di atas)
+    buat geometri sesuai tipe, di posisi (x, y), berukuran w x h,
+        berotasi dan berwarna sesuai data
+```
+
+Satu putaran loop menghasilkan satu geometri, dan loop berhenti saat data habis. Urutan pembuatan sama dengan urutan data: bentuk pertama adalah latar, bentuk sesudahnya menumpuk di atasnya. Pastikan di Craftland urutan tumpukannya mengikuti urutan pembuatan, kalau tidak gambar bisa tampak berbeda dari pratinjau.
 
 ### Alfabet
 
@@ -78,9 +128,32 @@ Alfabet ada di konstanta `AL` di dalam `index.html`, dan salinannya per 200 kara
 
 Karakter yang dipilih hanya yang berada di BMP (satu unit per karakter), tanpa spasi, karakter kontrol, tanda gabung, dan karakter yang berubah kalau dinormalisasi.
 
-`craftland_unicode_test_3000.txt` berisi 3000 karakter kandidat dalam 15 baris × 200 karakter, untuk menguji karakter mana saja yang diterima kolom input Craftland. Cara tesnya: tempel satu baris, lalu cek panjang string-nya. Kalau 200, seluruh baris itu aman.
-
 > **Status uji:** 1400 karakter pertama alfabet (baris 1 sampai 7) sudah lolos di Craftland. 49 karakter terakhir (baris 8) belum dikonfirmasi.
+
+## Cara Craftland membaca data
+
+1. Semua baris ditempel **berurutan** dan digabung menjadi satu teks.
+2. Craftland melakukan loop pada teks itu, **7 karakter sekali jalan**.
+3. Dari tiap 7 karakter, Craftland menghitung data bentuk memakai rumus di atas, lalu membuat **satu geometri** dari data itu.
+
+```
+untuk i dari 0 sampai panjang teks, tambah 7 setiap putaran:
+    ambil 7 karakter mulai dari i
+    cari nomor urut tiap karakter di alfabet
+    hitung tipe, rotasi, warna (r, g, b), x, y, lebar, tinggi
+    buat 1 geometry:
+        bentuk   = tipe
+        posisi   = (x, y)
+        ukuran   = (lebar, tinggi)
+        rotasi   = rotasi
+        warna    = (r, g, b)
+```
+
+Beberapa hal yang perlu diperhatikan:
+
+- Jumlah bentuk = panjang teks ÷ 7. Panjang teks harus kelipatan 7.
+- Satu baris berisi 200 karakter dan 200 bukan kelipatan 7, jadi satu bentuk bisa terbelah di antara dua baris. Itu tidak masalah selama semua baris ditempel berurutan dan dibaca setelah digabung.
+- Bentuk pertama adalah latar yang menutupi seluruh gambar. Bentuk dibuat sesuai urutan data, dan generator mengasumsikan bentuk yang dibuat belakangan berada di lapisan paling atas.
 
 ## Cara kerja
 
@@ -118,7 +191,6 @@ Ketelitian mengatur seberapa teliti pencarian di tiap langkah:
 .
 ├── index.html                      # aplikasinya (satu file)
 ├── craftland_alfabet_1449.txt      # alfabet 1449 karakter, per 200 karakter
-├── craftland_unicode_test_3000.txt # 3000 karakter kandidat untuk tes input Craftland
 └── README.md
 ```
 
